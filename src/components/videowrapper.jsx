@@ -1,9 +1,10 @@
-//videowrapper.jsx
+// videowrapper.jsx
 import React, { useState, useRef, useEffect } from "react";
 import ReactPlayer from "react-player";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import axios from "axios";
+import io from "socket.io-client"; // Import Socket.IO client
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
@@ -17,12 +18,16 @@ function VideoWrapper({ videoId }) {
   const [fileSize, setFileSize] = useState(null);
   const [ffmpegProgress, setFfmpegProgress] = useState(null);
   const playerRef = useRef(null);
-  const eventSourceRef = useRef(null);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
+    // Initialize Socket.IO connection
+    const socketInstance = io(API_BASE_URL);
+    setSocket(socketInstance);
+
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
+      if (socketInstance) {
+        socketInstance.disconnect();
       }
     };
   }, []);
@@ -50,44 +55,36 @@ function VideoWrapper({ videoId }) {
     setFfmpegProgress(null);
     setCroppedVideoUrl(null);
 
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
+    // Close any existing Socket.IO connections
+    if (socket) {
+      socket.disconnect();
     }
 
-    const connectEventSource = () => {
-      eventSourceRef.current = new EventSource(
-        `${API_BASE_URL}/api/crop-video`
-      );
+    // Reconnect to Socket.IO
+    const socketInstance = io(API_BASE_URL);
+    setSocket(socketInstance);
 
-      eventSourceRef.current.onopen = () => {
-        console.log("EventSource connection opened");
-      };
-
-      eventSourceRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.progress !== undefined) {
-          setFfmpegProgress(data.progress);
-        } else if (data.success) {
-          setCroppedVideoUrl(data.croppedVideoUrl);
-          setFileSize(data.fileSize);
-          eventSourceRef.current.close();
-          setIsProcessing(false);
-        } else if (data.error) {
-          setError(data.error);
-          eventSourceRef.current.close();
-          setIsProcessing(false);
-        }
-      };
-
-      eventSourceRef.current.onerror = (error) => {
-        console.error("EventSource failed:", error);
-        setError("Error cropping video: Connection lost. Retrying...");
-        eventSourceRef.current.close();
-        setTimeout(connectEventSource, 5000); // Retry after 5 seconds
-      };
-    };
-
-    connectEventSource();
+    // Listen for Socket.IO events
+    socketInstance.on("processingStarted", () => {
+      console.log("Processing started");
+    });
+    socketInstance.on("progressUpdate", (data) => {
+      setFfmpegProgress(data.percent);
+    });
+    socketInstance.on("uploadStarted", () => {
+      console.log("Upload started");
+    });
+    socketInstance.on("uploadCompleted", (data) => {
+      setCroppedVideoUrl(data.url);
+      setFileSize(data.fileSize);
+      socketInstance.disconnect(); // Disconnect after receiving completion event
+      setIsProcessing(false);
+    });
+    socketInstance.on("processingFailed", (data) => {
+      setError(data.error);
+      socketInstance.disconnect(); // Disconnect after receiving failure event
+      setIsProcessing(false);
+    });
 
     try {
       const response = await axios.post(
@@ -114,8 +111,8 @@ function VideoWrapper({ videoId }) {
         "Error starting video crop: " + (error.message || "Unknown error")
       );
       setIsProcessing(false);
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
+      if (socket) {
+        socket.disconnect();
       }
     }
   };
