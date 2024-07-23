@@ -1,8 +1,8 @@
 // backend/services/videoService.js
-const youtubedl = require("youtube-dl-exec");
+const ytdl = require("ytdl-core");
 const ffmpeg = require("fluent-ffmpeg");
 const cloudinary = require("../config/cloudinary");
-const fs = require("fs").promises; // Use promises version of fs
+const fs = require("fs").promises;
 const path = require("path");
 const os = require("os");
 
@@ -19,23 +19,16 @@ exports.cropVideo = (videoUrl, startTime, endTime, socketCallback) => {
 
       console.log(`Downloading to temporary file: ${tempFilePath}`);
 
-      await youtubedl(videoUrl, {
-        output: tempFilePath,
-        format: "bestaudio/best",
-        noCheckCertificates: true,
-        noWarnings: true,
-        preferFreeFormats: true,
-        addHeader: [
-          "referer:youtube.com",
-          "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        ],
-      });
-
-      // Check if the file was actually created
-      await fs.access(tempFilePath);
-
-      socketCallback("processingStarted", {
-        message: "Download complete. Starting ffmpeg process.",
+      await new Promise((resolve, reject) => {
+        ytdl(videoUrl, { quality: "highestaudio" })
+          .pipe(fs.createWriteStream(tempFilePath))
+          .on("finish", () => {
+            socketCallback("processingStarted", {
+              message: "Download complete. Starting ffmpeg process.",
+            });
+            resolve();
+          })
+          .on("error", reject);
       });
 
       await new Promise((resolve, reject) => {
@@ -57,9 +50,6 @@ exports.cropVideo = (videoUrl, startTime, endTime, socketCallback) => {
           })
           .run();
       });
-
-      // Check if the output file was created
-      await fs.access(outputFilePath);
 
       socketCallback("uploadStarted", {
         message: "Video processing complete, uploading to Cloudinary",

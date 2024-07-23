@@ -21,6 +21,10 @@ exports.cropVideo = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error(`Error cropping video: ${error.message}`);
+    io.emit("processingFailed", {
+      message: "An error occurred during processing",
+      error: error.message,
+    });
     res.status(500).json({ error: error.message, stack: error.stack });
   }
 };
