@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-exports.cropVideo = (videoUrl, startTime, endTime, socket) => {
+exports.cropVideo = (videoUrl, startTime, endTime, socketCallback) => {
   return new Promise(async (resolve, reject) => {
     console.log(`Starting video crop process for URL: ${videoUrl}`);
 
@@ -14,7 +14,6 @@ exports.cropVideo = (videoUrl, startTime, endTime, socket) => {
     let outputFilePath;
 
     try {
-      // Create temporary files
       tempFilePath = path.join(os.tmpdir(), `${Date.now()}_input.mp4`);
       outputFilePath = path.join(os.tmpdir(), `${Date.now()}_output.mp4`);
 
@@ -32,8 +31,7 @@ exports.cropVideo = (videoUrl, startTime, endTime, socket) => {
         ],
       });
 
-      // Emit event indicating download is complete and ffmpeg process is about to start
-      socket.emit("processingStarted", {
+      socketCallback("processingStarted", {
         message: "Download complete. Starting ffmpeg process.",
       });
 
@@ -44,12 +42,10 @@ exports.cropVideo = (videoUrl, startTime, endTime, socket) => {
           .outputOptions("-c copy")
           .output(outputFilePath)
           .on("progress", (progress) => {
-            if (socket) {
-              socket.emit("progressUpdate", {
-                percent: Math.round(progress.percent),
-                message: "Processing...",
-              });
-            }
+            socketCallback("progressUpdate", {
+              percent: Math.round(progress.percent),
+              message: "Processing...",
+            });
           })
           .on("end", resolve)
           .on("error", (err) => {
@@ -59,8 +55,7 @@ exports.cropVideo = (videoUrl, startTime, endTime, socket) => {
           .run();
       });
 
-      // Emit event indicating video processing is complete and upload to Cloudinary is about to start
-      socket.emit("uploadStarted", {
+      socketCallback("uploadStarted", {
         message: "Video processing complete, uploading to Cloudinary",
       });
 
@@ -81,8 +76,7 @@ exports.cropVideo = (videoUrl, startTime, endTime, socket) => {
         fs.createReadStream(outputFilePath).pipe(uploadStream);
       });
 
-      // Emit event indicating upload to Cloudinary was successful
-      socket.emit("uploadCompleted", {
+      socketCallback("uploadCompleted", {
         message: "Upload to Cloudinary successful",
         url: result.secure_url,
       });
@@ -94,8 +88,7 @@ exports.cropVideo = (videoUrl, startTime, endTime, socket) => {
       });
     } catch (error) {
       console.error(`Error in video processing: ${error.message}`);
-      // Emit event indicating an error occurred during processing
-      socket.emit("processingFailed", {
+      socketCallback("processingFailed", {
         message: "An error occurred during processing",
         error: error.message,
       });

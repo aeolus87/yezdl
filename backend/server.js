@@ -9,7 +9,6 @@ const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
-// Define allowed origins
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:3000",
@@ -17,7 +16,6 @@ const allowedOrigins = [
   "https://www.yezdl.com",
 ];
 
-// CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
@@ -26,62 +24,43 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
+  methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
   optionsSuccessStatus: 200,
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
-
-// Parse JSON bodies
 app.use(express.json());
 
-// Initialize Socket.IO with CORS
 const io = socketIo(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
-// Socket.IO connection handler
+app.set("io", io);
+
 io.on("connection", (socket) => {
   console.log("New client connected");
-
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
 });
 
-// Attach Socket.IO to request object
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
-
-// Routes
 app.use("/api", videoRoutes);
 
-// Health check route
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", message: "Server is running" });
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ message: "An unexpected error occurred" });
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Not Found" });
 });
 
-// Start server
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

@@ -3,38 +3,24 @@ const videoService = require("../services/videoService");
 
 exports.cropVideo = async (req, res) => {
   const { videoUrl, startTime, endTime } = req.body;
+  const io = req.app.get("io");
 
   console.log(`Crop video request received for URL: ${videoUrl}`);
 
   try {
-    res.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    });
-
-    const sendProgress = (progress) => {
-      res.write(`data: ${JSON.stringify({ progress })}\n\n`);
+    const socketCallback = (event, data) => {
+      io.emit(event, data);
     };
-
-    // Send a ping every 30 seconds to keep the connection alive
-    const pingInterval = setInterval(() => {
-      res.write(": ping\n\n");
-    }, 30000);
 
     const result = await videoService.cropVideo(
       videoUrl,
       startTime,
       endTime,
-      sendProgress
+      socketCallback
     );
-    res.write(`data: ${JSON.stringify(result)}\n\n`);
-    res.end();
-
-    clearInterval(pingInterval);
+    res.json(result);
   } catch (error) {
     console.error(`Error cropping video: ${error.message}`);
-    res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
-    res.end();
+    res.status(500).json({ error: error.message });
   }
 };
