@@ -2,7 +2,8 @@
 const ytdl = require("ytdl-core");
 const ffmpeg = require("fluent-ffmpeg");
 const cloudinary = require("../config/cloudinary");
-const fs = require("fs").promises;
+const fs = require("fs");
+const fsp = require("fs").promises;
 const path = require("path");
 const os = require("os");
 
@@ -92,14 +93,14 @@ exports.cropVideo = (videoUrl, startTime, endTime, socketCallback) => {
     } finally {
       if (tempFilePath) {
         try {
-          await fs.unlink(tempFilePath);
+          await fsp.unlink(tempFilePath);
         } catch (err) {
           console.error(`Error deleting input temporary file: ${err.message}`);
         }
       }
       if (outputFilePath) {
         try {
-          await fs.unlink(outputFilePath);
+          await fsp.unlink(outputFilePath);
         } catch (err) {
           console.error(`Error deleting output temporary file: ${err.message}`);
         }
