@@ -2,7 +2,7 @@
 const youtubedl = require("youtube-dl-exec");
 const ffmpeg = require("fluent-ffmpeg");
 const cloudinary = require("../config/cloudinary");
-const fs = require("fs");
+const fs = require("fs").promises; // Use promises version of fs
 const path = require("path");
 const os = require("os");
 
@@ -31,6 +31,9 @@ exports.cropVideo = (videoUrl, startTime, endTime, socketCallback) => {
         ],
       });
 
+      // Check if the file was actually created
+      await fs.access(tempFilePath);
+
       socketCallback("processingStarted", {
         message: "Download complete. Starting ffmpeg process.",
       });
@@ -54,6 +57,9 @@ exports.cropVideo = (videoUrl, startTime, endTime, socketCallback) => {
           })
           .run();
       });
+
+      // Check if the output file was created
+      await fs.access(outputFilePath);
 
       socketCallback("uploadStarted", {
         message: "Video processing complete, uploading to Cloudinary",
@@ -95,15 +101,18 @@ exports.cropVideo = (videoUrl, startTime, endTime, socketCallback) => {
       reject(new Error("Error processing video"));
     } finally {
       if (tempFilePath) {
-        fs.unlink(tempFilePath, (err) => {
-          if (err) console.error(`Error deleting input temporary file: ${err}`);
-        });
+        try {
+          await fs.unlink(tempFilePath);
+        } catch (err) {
+          console.error(`Error deleting input temporary file: ${err.message}`);
+        }
       }
       if (outputFilePath) {
-        fs.unlink(outputFilePath, (err) => {
-          if (err)
-            console.error(`Error deleting output temporary file: ${err}`);
-        });
+        try {
+          await fs.unlink(outputFilePath);
+        } catch (err) {
+          console.error(`Error deleting output temporary file: ${err.message}`);
+        }
       }
     }
   });
