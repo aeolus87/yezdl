@@ -80,7 +80,6 @@ exports.cropVideo = (videoUrl, startTime, endTime, progressCallback) => {
       console.error(`Error in video processing: ${error.message}`);
       reject(new Error("Error processing video"));
     } finally {
-      // Clean up temporary files
       if (tempFilePath) {
         fs.unlink(tempFilePath, (err) => {
           if (err) console.error(`Error deleting input temporary file: ${err}`);

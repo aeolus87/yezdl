@@ -101,7 +101,7 @@ function VideoWrapper({ videoId }) {
           headers: {
             "Content-Type": "application/json",
           },
-          timeout: 300000, // 5 minutes timeout
+          timeout: 300000,
         }
       );
 
