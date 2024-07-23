@@ -1,3 +1,5 @@
+//manual.jsx
+
 import React from "react";
 
 function HowToUse() {
