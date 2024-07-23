@@ -71,14 +71,12 @@ function VideoWrapper({ videoId }) {
         setIsProcessing(false);
       }
     };
-
     eventSourceRef.current.onerror = (error) => {
       console.error("EventSource failed:", error);
-      setError("Error cropping video");
+      setError("Error cropping video: Connection lost. Please try again.");
       eventSourceRef.current.close();
       setIsProcessing(false);
     };
-
     try {
       await axios.post(
         `${API_BASE_URL}/api/crop-video`,
@@ -217,4 +215,3 @@ function VideoWrapper({ videoId }) {
 }
 
 export default VideoWrapper;
-

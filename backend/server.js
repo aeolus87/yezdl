@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
 const videoRoutes = require("./routes/videoRoutes");
 
 // Disable ytdl-core update check
@@ -67,9 +68,29 @@ app.use((req, res) => {
   res.status(404).json({ message: "Not Found" });
 });
 
+// Create HTTP server
+const server = http.createServer(app);
+
 // Start server
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
 
-module.exports = app;
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received: closing HTTP server");
+  server.close(() => {
+    console.log("HTTP server closed");
+    process.exit(0);
+  });
+});
+
+process.on("SIGINT", () => {
+  console.log("SIGINT signal received: closing HTTP server");
+  server.close(() => {
+    console.log("HTTP server closed");
+    process.exit(0);
+  });
+});
+
+module.exports = server;
