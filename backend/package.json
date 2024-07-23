@@ -12,7 +12,8 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "fluent-ffmpeg": "^2.1.2",
-    "ytdl-core": "^4.11.5"
+    "ytdl-core": "^4.11.5",
+    "cloudinary": "^1.41.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
