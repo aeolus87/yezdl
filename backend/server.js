@@ -71,6 +71,9 @@ app.use((req, res) => {
 // Create HTTP server
 const server = http.createServer(app);
 
+// Configure server timeout
+server.timeout = 300000; // 5 minutes
+
 // Start server
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
@@ -91,6 +94,12 @@ process.on("SIGINT", () => {
     console.log("HTTP server closed");
     process.exit(0);
   });
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  // Application specific logging, throwing an error, or other logic here
 });
 
 module.exports = server;

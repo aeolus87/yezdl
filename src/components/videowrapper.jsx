@@ -54,31 +54,43 @@ function VideoWrapper({ videoId }) {
       eventSourceRef.current.close();
     }
 
-    eventSourceRef.current = new EventSource(`${API_BASE_URL}/api/crop-video`);
+    const connectEventSource = () => {
+      eventSourceRef.current = new EventSource(
+        `${API_BASE_URL}/api/crop-video`
+      );
 
-    eventSourceRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.progress !== undefined) {
-        setFfmpegProgress(data.progress);
-      } else if (data.success) {
-        setCroppedVideoUrl(data.croppedVideoUrl);
-        setFileSize(data.fileSize);
+      eventSourceRef.current.onopen = () => {
+        console.log("EventSource connection opened");
+      };
+
+      eventSourceRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.progress !== undefined) {
+          setFfmpegProgress(data.progress);
+        } else if (data.success) {
+          setCroppedVideoUrl(data.croppedVideoUrl);
+          setFileSize(data.fileSize);
+          eventSourceRef.current.close();
+          setIsProcessing(false);
+        } else if (data.error) {
+          setError(data.error);
+          eventSourceRef.current.close();
+          setIsProcessing(false);
+        }
+      };
+
+      eventSourceRef.current.onerror = (error) => {
+        console.error("EventSource failed:", error);
+        setError("Error cropping video: Connection lost. Retrying...");
         eventSourceRef.current.close();
-        setIsProcessing(false);
-      } else if (data.error) {
-        setError(data.error);
-        eventSourceRef.current.close();
-        setIsProcessing(false);
-      }
+        setTimeout(connectEventSource, 5000); // Retry after 5 seconds
+      };
     };
-    eventSourceRef.current.onerror = (error) => {
-      console.error("EventSource failed:", error);
-      setError("Error cropping video: Connection lost. Please try again.");
-      eventSourceRef.current.close();
-      setIsProcessing(false);
-    };
+
+    connectEventSource();
+
     try {
-      await axios.post(
+      const response = await axios.post(
         `${API_BASE_URL}/api/crop-video`,
         {
           videoUrl,
@@ -88,14 +100,23 @@ function VideoWrapper({ videoId }) {
         {
           headers: {
             "Content-Type": "application/json",
-            Accept: "text/event-stream",
           },
+          timeout: 300000, // 5 minutes timeout
         }
       );
+
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     } catch (error) {
       console.error("Error starting video crop:", error);
-      setError("Error starting video crop");
+      setError(
+        "Error starting video crop: " + (error.message || "Unknown error")
+      );
       setIsProcessing(false);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
     }
   };
 
