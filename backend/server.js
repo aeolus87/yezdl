@@ -14,7 +14,9 @@ const corsOptions = {
     // Allow requests from the frontend URL
     const allowedOrigins = [
       process.env.FRONTEND_URL,
-      "http://localhost:3000", // Development environment
+      "http://localhost:3000",
+      "https://yezdl.com",
+      "yezdl.com",
     ];
 
     if (allowedOrigins.includes(origin) || !origin) {
@@ -32,9 +34,26 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Initialize Socket.IO
+// Initialize Socket.IO with CORS
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+  cors: {
+    origin: function (origin, callback) {
+      // Allow Socket.IO connections from the frontend URL
+      const allowedOrigins = [
+        process.env.FRONTEND_URL,
+        "http://localhost:3000", // Development environment
+      ];
+
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST"],
+  },
+});
 
 // Listen for connections
 io.on("connection", (socket) => {
