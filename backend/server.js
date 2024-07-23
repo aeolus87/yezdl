@@ -39,10 +39,12 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: function (origin, callback) {
-      // Allow Socket.IO connections from the frontend URL
+      // Allow Socket.IO connections from the frontend URL and other specified origins
       const allowedOrigins = [
         process.env.FRONTEND_URL,
         "http://localhost:3000", // Development environment
+        "https://yezdl.com",
+        "yezdl.com",
       ];
 
       if (allowedOrigins.includes(origin) || !origin) {
