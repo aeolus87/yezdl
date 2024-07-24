@@ -2,7 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
-const socketIo = require('socket.io');
+const { Server } = require("socket.io");
 const cloudinary = require('cloudinary').v2;
 const videoRoutes = require('./routes/videoRoutes');
 
@@ -21,15 +21,20 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Update CORS configuration
 const corsOptions = {
-  origin: [FRONTEND_URL],
-  methods: ['GET', 'POST'],
-  credentials: true
+  origin: FRONTEND_URL,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 app.use(cors(corsOptions));
 
-const io = socketIo(server, {
-  cors: corsOptions
+const io = new Server(server, {
+  cors: {
+    origin: FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
 app.use(express.json());
