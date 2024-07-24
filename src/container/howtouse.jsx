@@ -1,4 +1,4 @@
-//manual.jsx
+//manual.jsxx
 
 import React from "react";
 
