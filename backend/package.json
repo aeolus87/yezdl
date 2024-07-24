@@ -1,26 +1,28 @@
+
 {
     "name": "yezdl-aeolus-backend",
     "version": "1.0.0",
     "description": "Backend service for YEZDL Aeolus",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js"
+      "start": "node server.js",
+      "dev": "nodemon server.js"
     },
     "author": "Your Name",
     "license": "MIT",
     "dependencies": {
-        "@distube/ytdl-core": "^4.13.5",
-        "@ffmpeg-installer/ffmpeg": "^1.0.20",
-        "cloudinary": "^1.27.0",
-        "cors": "^2.8.5",
-        "dotenv": "^16.0.0",
-        "express": "^4.17.1",
-        "fluent-ffmpeg": "^2.1.2",
-        "socket.io": "^4.1.2",
-        "util": "^0.12.4"
+      "@ffmpeg-installer/ffmpeg": "^1.0.20",
+      "cloudinary": "^1.27.0",
+      "cors": "^2.8.5",
+      "dotenv": "^16.0.0",
+      "express": "^4.17.1",
+      "fluent-ffmpeg": "^2.1.2",
+      "socket.io": "^4.1.2",
+      "util": "^0.12.4",
+      "ytdl-core": "github:eugabrielsilva/node-ytdl-core"
     },
     "devDependencies": {
-        "nodemon": "^2.0.15"
+      "nodemon": "^2.0.15"
     }
-}
+  }
+  

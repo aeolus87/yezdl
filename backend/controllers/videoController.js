@@ -1,5 +1,5 @@
 //backend\controllers\videoController.js
-const { processVideo } = require("../utils/ffmpegHelpers");
+const { processVideo } = require("../services/utils/ffmpegHelpers");
 
 exports.cropVideo = async (req, res) => {
   const { videoId, startTime, endTime } = req.body;
