@@ -1,3 +1,4 @@
+//backend\cleanup\cleanupOldFiles.js
 const cloudinary = require("cloudinary").v2;
 
 async function cleanupOldFiles() {

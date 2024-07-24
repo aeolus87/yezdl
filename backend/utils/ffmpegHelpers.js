@@ -1,5 +1,6 @@
+//backend\utils\ffmpegHelpers.js
 const ffmpeg = require('fluent-ffmpeg');
-const ytdl = require("ytdl-core");
+const ytdl = require("@distube/ytdl-core");
 const path = require("path");
 const fs = require("fs");
 const cloudinaryUpload = require("./cloudinaryConfig");

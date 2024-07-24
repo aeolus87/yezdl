@@ -1,3 +1,4 @@
+
 {
     "name": "yezdl-aeolus-backend",
     "version": "1.0.0",
@@ -18,7 +19,7 @@
       "fluent-ffmpeg": "^2.1.2",
       "socket.io": "^4.1.2",
       "util": "^0.12.4",
-      "ytdl-core": "^4.11.5"
+      "@distube/ytdl-core": "^4.13.5"
     },
     "devDependencies": {
       "nodemon": "^2.0.15"
