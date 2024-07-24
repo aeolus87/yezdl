@@ -118,12 +118,11 @@ async function processVideo(videoId, startTime, endTime, res) {
         console.error("FFmpeg stdout:", stdout);
         console.error("FFmpeg stderr:", stderr);
         
-        // Handle retry or fallback
-        if (err.message.includes("Status code: 403")) {
-          // Implement retry logic or notify the user
+        if (err.message.includes("Status code: 410")) {
+          res.status(410).json({ error: "Video resource is no longer available" });
+        } else {
+          res.status(500).json({ error: "Failed to process video", details: err.message });
         }
-        
-        res.status(500).json({ error: "Failed to process video", details: err.message });
       })
       .run();
   } catch (error) {
