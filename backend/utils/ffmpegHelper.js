@@ -1,7 +1,7 @@
+//backend\utils\ffmpegHelper.js
 const ffmpeg = require('fluent-ffmpeg');
-const { io } = require('../server');
 
-exports.cropVideo = (inputStream, outputPath, startTime, endTime) => {
+exports.cropVideo = (inputStream, outputPath, startTime, endTime, io) => {
   return new Promise((resolve, reject) => {
     ffmpeg(inputStream)
       .setStartTime(startTime)
