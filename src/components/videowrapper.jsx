@@ -76,12 +76,12 @@ function VideoWrapper({ videoId }) {
     socketInstance.on("uploadCompleted", (data) => {
       setCroppedVideoUrl(data.url);
       setFileSize(data.fileSize);
-      socketInstance.disconnect(); // Disconnect after receiving completion event
+      socketInstance.disconnect(); 
       setIsProcessing(false);
     });
     socketInstance.on("processingFailed", (data) => {
       setError(data.error);
-      socketInstance.disconnect(); // Disconnect after receiving failure event
+      socketInstance.disconnect(); 
       setIsProcessing(false);
     });
 
