@@ -1,4 +1,4 @@
-//manual.jsxx
+//yezdl-aeolus\src\container\howtouse.jsx
 
 import React from "react";
 

@@ -1,12 +1,11 @@
-//main.jsx
-
+//yezdl-aeolus\src\container\main.jsx
 import React, { useState, useEffect, useRef } from "react";
-import SearchBar from "../components/searchbar";
-import VideoWrapper from "../components/videowrapper";
-import { extractVideoId, fetchVideoData } from "../helper/youtubeHelpers";
+import SearchBar from "../../components/common/searchbar";
+import VideoWrapper from "./videowrapper";
+import { extractVideoId, fetchVideoData } from "../../services/youtubeServices";
 import HowToUse from "./howtouse";
 
-function Main() {
+function YoutubeMain() {
   const [videoId, setVideoId] = useState(null);
   const [loading, setLoading] = useState(false);
   const howToUseRef = useRef(null);
@@ -56,4 +55,4 @@ function Main() {
   );
 }
 
-export default Main;
+export default YoutubeMain;
