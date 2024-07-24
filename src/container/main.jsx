@@ -1,3 +1,5 @@
+//main.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import SearchBar from "../components/searchbar";
 import VideoWrapper from "../components/videowrapper";
