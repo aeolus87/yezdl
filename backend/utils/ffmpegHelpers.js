@@ -1,4 +1,4 @@
-const ffmpeg = require("fluent-ffmpeg");
+const ffmpeg = require('fluent-ffmpeg');
 const ytdl = require("ytdl-core");
 const path = require("path");
 const fs = require("fs");
@@ -38,7 +38,15 @@ async function processVideo(videoId, startTime, endTime, res) {
 
     console.log(`Selected format: ${format.qualityLabel}`);
 
-    const stream = ytdl(videoUrl, { format: format });
+    const stream = ytdl(videoUrl, {
+      format: format,
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        },
+      },
+    });
+
     let hasAudioCodec = false;
     const totalDuration = endTime - startTime;
 
@@ -87,7 +95,6 @@ async function processVideo(videoId, startTime, endTime, res) {
             folder: "cropped_videos",
           });
 
-          // Delete local file after upload
           fs.unlink(outputPath, (err) => {
             if (err) console.error("Error deleting local file:", err);
           });
