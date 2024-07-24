@@ -1,10 +1,9 @@
-// videowrapper.jsx
 import React, { useState, useRef, useEffect } from "react";
 import ReactPlayer from "react-player";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import axios from "axios";
-import io from "socket.io-client"; // Import Socket.IO client
+import io from "socket.io-client";
 
 const API_BASE_URL = "https://yezdl.onrender.com";
 
@@ -20,13 +19,46 @@ function VideoWrapper({ videoId }) {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Initialize Socket.IO connection
-    const socketInstance = io(API_BASE_URL);
-    setSocket(socketInstance);
+    const newSocket = io(API_BASE_URL, {
+      withCredentials: true,
+      transports: ['websocket']
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    newSocket.on('processingStarted', () => {
+      console.log('Processing started');
+    });
+
+    newSocket.on('progressUpdate', (data) => {
+      console.log('Progress update:', data.percent);
+      setFfmpegProgress(data.percent);
+    });
+
+    newSocket.on('uploadStarted', () => {
+      console.log('Upload started');
+    });
+
+    newSocket.on('uploadCompleted', (data) => {
+      console.log('Upload completed:', data);
+      setCroppedVideoUrl(data.url);
+      setFileSize(data.fileSize);
+      setIsProcessing(false);
+    });
+
+    newSocket.on('processingFailed', (data) => {
+      console.error('Processing failed:', data.error);
+      setError(data.error);
+      setIsProcessing(false);
+    });
+
+    setSocket(newSocket);
 
     return () => {
-      if (socketInstance) {
-        socketInstance.disconnect();
+      if (newSocket) {
+        newSocket.disconnect();
       }
     };
   }, []);
@@ -54,37 +86,6 @@ function VideoWrapper({ videoId }) {
     setFfmpegProgress(null);
     setCroppedVideoUrl(null);
 
-    // Close any existing Socket.IO connections
-    if (socket) {
-      socket.disconnect();
-    }
-
-    // Reconnect to Socket.IO
-    const socketInstance = io(API_BASE_URL);
-    setSocket(socketInstance);
-
-    // Listen for Socket.IO events
-    socketInstance.on("processingStarted", () => {
-      console.log("Processing started");
-    });
-    socketInstance.on("progressUpdate", (data) => {
-      setFfmpegProgress(data.percent);
-    });
-    socketInstance.on("uploadStarted", () => {
-      console.log("Upload started");
-    });
-    socketInstance.on("uploadCompleted", (data) => {
-      setCroppedVideoUrl(data.url);
-      setFileSize(data.fileSize);
-      socketInstance.disconnect(); 
-      setIsProcessing(false);
-    });
-    socketInstance.on("processingFailed", (data) => {
-      setError(data.error);
-      socketInstance.disconnect(); 
-      setIsProcessing(false);
-    });
-
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/crop-video`,
@@ -110,9 +111,6 @@ function VideoWrapper({ videoId }) {
         "Error starting video crop: " + (error.message || "Unknown error")
       );
       setIsProcessing(false);
-      if (socket) {
-        socket.disconnect();
-      }
     }
   };
 

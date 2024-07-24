@@ -1,4 +1,3 @@
-//backend\services\videoService.js
 const ytdl = require('ytdl-core');
 const ffmpegHelper = require('../utils/ffmpegHelper');
 const cloudinary = require('cloudinary').v2;
@@ -10,9 +9,13 @@ const unlinkAsync = promisify(fs.unlink);
 
 exports.cropVideo = async (videoUrl, startTime, endTime, io) => {
   try {
+    console.log('Starting video crop process');
+    io.emit('processingStarted');
+
     const videoInfo = await ytdl.getInfo(videoUrl);
     const videoFormat = ytdl.chooseFormat(videoInfo.formats, { quality: 'highest' });
     
+    console.log('Downloading video');
     const videoStream = ytdl(videoUrl, { format: videoFormat });
     
     const tempDir = path.join(__dirname, '../temp');
@@ -21,9 +24,14 @@ exports.cropVideo = async (videoUrl, startTime, endTime, io) => {
     }
     const outputPath = path.join(tempDir, `cropped_${Date.now()}.mp4`);
     
-    await ffmpegHelper.cropVideo(videoStream, outputPath, startTime, endTime, io);
+    console.log('Cropping video');
+    await ffmpegHelper.cropVideo(videoStream, outputPath, startTime, endTime, (progress) => {
+      console.log(`FFmpeg Progress: ${progress.percent}%`);
+      io.emit('progressUpdate', { percent: progress.percent });
+    });
     
-    // Upload to Cloudinary
+    console.log('Uploading to Cloudinary');
+    io.emit('uploadStarted');
     const cloudinaryResult = await cloudinary.uploader.upload(outputPath, {
       resource_type: 'video',
       public_id: `cropped_${Date.now()}`,
@@ -31,7 +39,7 @@ exports.cropVideo = async (videoUrl, startTime, endTime, io) => {
       timeout: 120000
     });
 
-    // Delete local file
+    console.log('Deleting local file');
     await unlinkAsync(outputPath);
 
     // Schedule deletion from Cloudinary after 1 hour
@@ -44,12 +52,18 @@ exports.cropVideo = async (videoUrl, startTime, endTime, io) => {
       }
     }, 3600000); // 1 hour in milliseconds
 
-    return { 
+    const result = { 
       url: cloudinaryResult.secure_url, 
       fileSize: cloudinaryResult.bytes
     };
+
+    console.log('Video processing completed');
+    io.emit('uploadCompleted', result);
+
+    return result;
   } catch (error) {
     console.error('Error in cropVideo service:', error);
+    io.emit('processingFailed', { error: error.message });
     throw error;
   }
 };
