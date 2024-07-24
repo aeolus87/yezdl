@@ -43,6 +43,8 @@ async function processVideo(videoId, startTime, endTime, res) {
       requestOptions: {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
         },
       },
     });
@@ -111,10 +113,16 @@ async function processVideo(videoId, startTime, endTime, res) {
           res.status(500).json({ error: "Failed to upload video" });
         }
       })
-      .on("error", (err, stdout, stderr) => {
+      .on("error", async (err, stdout, stderr) => {
         console.error("FFmpeg error:", err);
         console.error("FFmpeg stdout:", stdout);
         console.error("FFmpeg stderr:", stderr);
+        
+        // Handle retry or fallback
+        if (err.message.includes("Status code: 403")) {
+          // Implement retry logic or notify the user
+        }
+        
         res.status(500).json({ error: "Failed to process video", details: err.message });
       })
       .run();
