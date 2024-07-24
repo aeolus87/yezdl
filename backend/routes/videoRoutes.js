@@ -1,8 +1,8 @@
-//backend\controllers\videoController.js
-const express = require('express');
-const router = express.Router();
-const videoController = require('../controllers/videoController');
+const express = require("express");
+const { cropVideo } = require("../controllers/videoController");
 
-router.post('/crop-video', videoController.cropVideo);
+const router = express.Router();
+
+router.post("/crop-video", cropVideo);
 
 module.exports = router;

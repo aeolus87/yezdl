@@ -5,7 +5,8 @@ import "rc-slider/assets/index.css";
 import axios from "axios";
 import io from "socket.io-client";
 
-const API_BASE_URL = "https://yezdl.onrender.com";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
 function VideoWrapper({ videoId }) {
   const [duration, setDuration] = useState(0);
@@ -16,50 +17,16 @@ function VideoWrapper({ videoId }) {
   const [fileSize, setFileSize] = useState(null);
   const [ffmpegProgress, setFfmpegProgress] = useState(null);
   const playerRef = useRef(null);
-  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const newSocket = io(API_BASE_URL, {
-      withCredentials: true,
-      transports: ['websocket']
+    const socket = io(API_BASE_URL);
+    socket.on("ffmpeg_progress", (data) => {
+      console.log("Progress data received:", data);
+      setFfmpegProgress(data);
     });
-
-    newSocket.on('connect', () => {
-      console.log('Connected to server');
-    });
-
-    newSocket.on('processingStarted', () => {
-      console.log('Processing started');
-    });
-
-    newSocket.on('progressUpdate', (data) => {
-      console.log('Progress update:', data.percent);
-      setFfmpegProgress(data.percent);
-    });
-
-    newSocket.on('uploadStarted', () => {
-      console.log('Upload started');
-    });
-
-    newSocket.on('uploadCompleted', (data) => {
-      console.log('Upload completed:', data);
-      setCroppedVideoUrl(data.url);
-      setFileSize(data.fileSize);
-      setIsProcessing(false);
-    });
-
-    newSocket.on('processingFailed', (data) => {
-      console.error('Processing failed:', data.error);
-      setError(data.error);
-      setIsProcessing(false);
-    });
-
-    setSocket(newSocket);
 
     return () => {
-      if (newSocket) {
-        newSocket.disconnect();
-      }
+      socket.disconnect();
     };
   }, []);
 
@@ -84,33 +51,29 @@ function VideoWrapper({ videoId }) {
     setIsProcessing(true);
     setError(null);
     setFfmpegProgress(null);
-    setCroppedVideoUrl(null);
-
+    setCroppedVideoUrl(null); // Reset cropped video URL
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/crop-video`,
-        {
-          videoUrl,
-          startTime,
-          endTime,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 300000,
-        }
-      );
-
-      if (response.status !== 200) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await axios.post(`${API_BASE_URL}/api/crop-video`, {
+        videoId,
+        startTime,
+        endTime,
+      });
+      if (response.data.success) {
+        setCroppedVideoUrl(response.data.croppedVideoUrl);
+        setFileSize(response.data.fileSize);
+      } else {
+        setError(response.data.error || "Failed to crop video");
       }
     } catch (error) {
-      console.error("Error starting video crop:", error);
-      setError(
-        "Error starting video crop: " + (error.message || "Unknown error")
+      console.error(
+        "Error cropping video:",
+        error.response ? error.response.data : error.message
       );
-      setIsProcessing(false);
+      setError(
+        error.response ? error.response.data.error : "Error cropping video"
+      );
+    } finally {
+      setIsProcessing(false); // Ensure this is always called
     }
   };
 
@@ -128,7 +91,7 @@ function VideoWrapper({ videoId }) {
       const a = document.createElement("a");
       a.style.display = "none";
       a.href = url;
-      a.download = `yezdlcropped-${videoId}.mp4`;
+      a.download = `ytezdlcropped-${videoId}.mp4`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -183,7 +146,7 @@ function VideoWrapper({ videoId }) {
         </div>
         <button
           onClick={handleCrop}
-          className="w-full px-4 py-2 text-white bg-[#224ab9] rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-opacity-50"
+          className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
           disabled={isProcessing}
         >
           {isProcessing ? "Processing..." : "Crop Video"}
@@ -191,38 +154,39 @@ function VideoWrapper({ videoId }) {
       </div>
 
       {isProcessing && (
-        <div className="mt-4 relative">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-700"></div>
-          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <div className="bg-white bg-opacity-80 rounded-full h-24 w-24 flex items-center justify-center">
-              <div className="text-gray-700 text-center">
-                <div className="font-bold text-lg">
-                  {ffmpegProgress !== null
-                    ? `${ffmpegProgress.toFixed(0)}%`
-                    : "Processing..."}
-                </div>
-              </div>
-            </div>
+  <div className="mt-4 relative">
+    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+      <div className="bg-white bg-opacity-80 rounded-full h-24 w-24 flex items-center justify-center">
+        <div className="text-blue-500 text-center">
+          <div className="font-bold text-lg">
+            {ffmpegProgress && ffmpegProgress.progress !== undefined
+              ? `${ffmpegProgress.progress.toFixed(0)}%`
+              : "Processing..."}
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
+
       {error && <div className="mt-4 text-red-500">{error}</div>}
 
       {croppedVideoUrl && (
-        <div className="preview-wrapper mb-8 w-full max-w-[44rem]">
-          <h3 className="text-xl font-semibold mb-2 text-center">
-            Cropped Video Preview
-          </h3>
-          <div className="aspect-w-16 aspect-h-9 mb-4">
-            <video src={croppedVideoUrl} width="100%" height="100%" controls />
-          </div>
+  <div className="preview-wrapper mb-8 w-full max-w-[44rem]">
+    <h3 className="text-xl font-semibold mb-2 text-center">
+      Cropped Video Preview
+    </h3>
+    <div className="aspect-w-16 aspect-h-9 mb-4">
+      <video src={croppedVideoUrl} width="100%" height="100%" controls />
+    </div>
 
-          <button
-            onClick={handleDownload}
-            className="w-full px-4 py-2 text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-          >
-            Download Cropped Video {fileSize && `(${formatFileSize(fileSize)})`}
-          </button>
+    <button
+      onClick={handleDownload}
+      className="w-full px-4 py-2 text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+    >
+      Download Cropped Video {fileSize && `(${formatFileSize(fileSize)})`}
+    </button>
         </div>
       )}
     </div>

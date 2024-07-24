@@ -1,17 +1,6 @@
-//backend\controllers\videoController.js
-const videoService = require('../services/videoService');
+const { processVideo } = require("../utils/ffmpegHelpers");
 
 exports.cropVideo = async (req, res) => {
-  const { videoUrl, startTime, endTime } = req.body;
-  
-  try {
-    req.io.emit('processingStarted');
-    const result = await videoService.cropVideo(videoUrl, startTime, endTime, req.io);
-    req.io.emit('uploadCompleted', result);
-    res.json(result);
-  } catch (error) {
-    console.error('Error in cropVideo:', error);
-    req.io.emit('processingFailed', { error: error.message });
-    res.status(500).json({ error: error.message });
-  }
+  const { videoId, startTime, endTime } = req.body;
+  await processVideo(videoId, startTime, endTime, res);
 };
