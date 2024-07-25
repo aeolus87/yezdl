@@ -5,6 +5,7 @@ const { URL } = require('url');
 
 exports.getVideoInfo = async (req, res) => {
   try {
+    console.log('Received request for URL:', req.query.url);
     const { url } = req.query;
     // Validate URL
     const parsedUrl = new URL(url);
@@ -59,7 +60,7 @@ exports.streamVideo = (req, res) => {
       fs.createReadStream(videoPath).pipe(res);
     }
   };
-  
+
 exports.downloadVideo = async (req, res) => {
   try {
     const { url } = req.query;
