@@ -7,8 +7,8 @@ import "../../fonts/yzy.css";
 
 const socialMediaLinks = [
   { icon: faYoutube, url: '#', color: 'text-gray-400', name: 'YouTube', maintenance: true },
-  { icon: faXTwitter, url: '/twitter', color: 'text-black', name: 'X' },
-  { icon: faInstagram, url: '/instagram', color: 'text-pink-500', name: 'Instagram' },
+  { icon: faXTwitter, url: '/x', color: 'text-black', name: 'X' },
+  { icon: faInstagram, url: '/instagram', name: 'Instagram' },
   { icon: faFacebookF, url: '/facebook', color: 'text-blue-600', name: 'Facebook' },
   { icon: faTiktok, url: '/tiktok', color: 'text-black', name: 'TikTok' },
 ];
@@ -20,20 +20,28 @@ const HomePage = () => {
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mb-12"
+        className="mb-4 flex flex-col items-center"
       >
         <Link
           to="/"
           className="text-[#252525] text-[7rem] transition-colors duration-300 ease-in-out hover:text-[#979595] flex items-center"
         >
-          y<span style={{ fontFamily: "YZY, sans-serif" }} className="flex">
+          <span className="font-semibold">y</span><span style={{ fontFamily: "YZY, sans-serif" }} className="flex">
             <span className="text-[#252525]">EZ</span>DL
           </span>
         </Link>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="text-xl text-gray-600 mt-2 font-light italic"
+        >
+          The YEZiest way to crop and download media
+        </motion.p>
       </motion.div>
 
       <motion.div 
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8"
+        className="grid grid-cols-3 lg:grid-cols-5 gap-8 mt-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
@@ -47,7 +55,6 @@ const HomePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ 
               duration: 0.2, 
-              delay: index * 0.1,
               type: "spring",
               stiffness: 300,
               damping: 10

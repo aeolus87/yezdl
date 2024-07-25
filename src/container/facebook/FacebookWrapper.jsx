@@ -2,9 +2,9 @@ import React, { useState, useRef } from "react";
 import ReactPlayer from "react-player";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
-import { cropInstagramVideo, downloadInstagramVideo } from "../../services/instagramApi";
+import { cropFacebookVideo, downloadFacebookVideo } from "../../services/facebookApi";
 
-function InstagramWrapper({ postData }) {
+function FacebookWrapper({ postData }) {
   const [cropRange, setCropRange] = useState([0, 100]);
   const [croppedVideoUrl, setCroppedVideoUrl] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -28,7 +28,7 @@ function InstagramWrapper({ postData }) {
     setError(null);
     setCroppedVideoUrl(null);
     try {
-      const croppedUrl = await cropInstagramVideo(videoUrl, startTime, endTime);
+      const croppedUrl = await cropFacebookVideo(videoUrl, startTime, endTime);
       setCroppedVideoUrl(croppedUrl);
     } catch (error) {
       console.error("Error cropping video:", error);
@@ -42,7 +42,7 @@ function InstagramWrapper({ postData }) {
     setIsProcessing(true);
     setError(null);
     try {
-      await downloadInstagramVideo(videoUrl);
+      await downloadFacebookVideo(videoUrl);
     } catch (error) {
       console.error("Error downloading video:", error);
       setError("Failed to download video");
@@ -65,7 +65,7 @@ function InstagramWrapper({ postData }) {
       return;
     }
     try {
-      await downloadInstagramVideo(croppedVideoUrl);
+      await downloadFacebookVideo(croppedVideoUrl);
     } catch (error) {
       console.error("Error downloading video:", error);
       setError("Error downloading video");
@@ -134,7 +134,7 @@ function InstagramWrapper({ postData }) {
         )}
         <button
           onClick={handleMainAction}
-          className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50"
           disabled={isProcessing}
         >
           {isProcessing ? "Processing..." : action === 'crop' ? "Crop Video" : "Download Video"}
@@ -143,7 +143,7 @@ function InstagramWrapper({ postData }) {
 
       {isProcessing && (
         <div className="mt-4 relative">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       )}
 
@@ -170,4 +170,4 @@ function InstagramWrapper({ postData }) {
   );
 }
 
-export default InstagramWrapper;
+export default FacebookWrapper;

@@ -1,10 +1,11 @@
+//src\container\x\XWrapper.jsx
 import React, { useState, useRef } from "react";
 import ReactPlayer from "react-player";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
-import { cropInstagramVideo, downloadInstagramVideo } from "../../services/instagramApi";
+import { cropXVideo, downloadXVideo } from "../../services/xApi";
 
-function InstagramWrapper({ postData }) {
+function XWrapper({ videoData }) {
   const [cropRange, setCropRange] = useState([0, 100]);
   const [croppedVideoUrl, setCroppedVideoUrl] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -12,7 +13,7 @@ function InstagramWrapper({ postData }) {
   const [action, setAction] = useState('crop'); // 'crop' or 'download'
   const playerRef = useRef(null);
 
-  const { videoUrl, duration } = postData;
+  const { videoUrl, duration } = videoData;
   const startTime = (cropRange[0] / 100) * duration;
   const endTime = (cropRange[1] / 100) * duration;
 
@@ -28,7 +29,7 @@ function InstagramWrapper({ postData }) {
     setError(null);
     setCroppedVideoUrl(null);
     try {
-      const croppedUrl = await cropInstagramVideo(videoUrl, startTime, endTime);
+      const croppedUrl = await cropXVideo(videoUrl, startTime, endTime);
       setCroppedVideoUrl(croppedUrl);
     } catch (error) {
       console.error("Error cropping video:", error);
@@ -42,7 +43,7 @@ function InstagramWrapper({ postData }) {
     setIsProcessing(true);
     setError(null);
     try {
-      await downloadInstagramVideo(videoUrl);
+      await downloadXVideo(videoUrl);
     } catch (error) {
       console.error("Error downloading video:", error);
       setError("Failed to download video");
@@ -65,7 +66,7 @@ function InstagramWrapper({ postData }) {
       return;
     }
     try {
-      await downloadInstagramVideo(croppedVideoUrl);
+      await downloadXVideo(croppedVideoUrl);
     } catch (error) {
       console.error("Error downloading video:", error);
       setError("Error downloading video");
@@ -134,7 +135,7 @@ function InstagramWrapper({ postData }) {
         )}
         <button
           onClick={handleMainAction}
-          className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="w-full px-4 py-2 text-white bg-black rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-opacity-50"
           disabled={isProcessing}
         >
           {isProcessing ? "Processing..." : action === 'crop' ? "Crop Video" : "Download Video"}
@@ -143,7 +144,7 @@ function InstagramWrapper({ postData }) {
 
       {isProcessing && (
         <div className="mt-4 relative">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-800"></div>
         </div>
       )}
 
@@ -170,4 +171,4 @@ function InstagramWrapper({ postData }) {
   );
 }
 
-export default InstagramWrapper;
+export default XWrapper;

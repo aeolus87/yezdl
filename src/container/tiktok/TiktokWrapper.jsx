@@ -2,9 +2,9 @@ import React, { useState, useRef } from "react";
 import ReactPlayer from "react-player";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
-import { cropInstagramVideo, downloadInstagramVideo } from "../../services/instagramApi";
+import { cropTikTokVideo, downloadTikTokVideo } from "../../services/tiktokApi";
 
-function InstagramWrapper({ postData }) {
+function TikTokWrapper({ postData }) {
   const [cropRange, setCropRange] = useState([0, 100]);
   const [croppedVideoUrl, setCroppedVideoUrl] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -28,7 +28,7 @@ function InstagramWrapper({ postData }) {
     setError(null);
     setCroppedVideoUrl(null);
     try {
-      const croppedUrl = await cropInstagramVideo(videoUrl, startTime, endTime);
+      const croppedUrl = await cropTikTokVideo(videoUrl, startTime, endTime);
       setCroppedVideoUrl(croppedUrl);
     } catch (error) {
       console.error("Error cropping video:", error);
@@ -42,7 +42,7 @@ function InstagramWrapper({ postData }) {
     setIsProcessing(true);
     setError(null);
     try {
-      await downloadInstagramVideo(videoUrl);
+      await downloadTikTokVideo(videoUrl);
     } catch (error) {
       console.error("Error downloading video:", error);
       setError("Failed to download video");
@@ -65,7 +65,7 @@ function InstagramWrapper({ postData }) {
       return;
     }
     try {
-      await downloadInstagramVideo(croppedVideoUrl);
+      await downloadTikTokVideo(croppedVideoUrl);
     } catch (error) {
       console.error("Error downloading video:", error);
       setError("Error downloading video");
@@ -106,13 +106,13 @@ function InstagramWrapper({ postData }) {
   return (
     <div className="flex flex-col items-center">
       <div className="video-wrapper mb-8 w-full max-w-[44rem]">
-        <div className="aspect-w-16 aspect-h-9 mb-4">
+        <div className="aspect-w-9 aspect-h-16 mb-4">
           <ReactPlayer
             ref={playerRef}
             url={videoUrl}
             width="100%"
             height="100%"
-            className="!h-[22rem]"
+            className="!h-[36rem]"
             controls={true}
           />
         </div>
@@ -134,7 +134,7 @@ function InstagramWrapper({ postData }) {
         )}
         <button
           onClick={handleMainAction}
-          className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="w-full px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           disabled={isProcessing}
         >
           {isProcessing ? "Processing..." : action === 'crop' ? "Crop Video" : "Download Video"}
@@ -143,7 +143,7 @@ function InstagramWrapper({ postData }) {
 
       {isProcessing && (
         <div className="mt-4 relative">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-500"></div>
         </div>
       )}
 
@@ -154,7 +154,7 @@ function InstagramWrapper({ postData }) {
           <h3 className="text-xl font-semibold mb-2 text-center">
             Cropped Video Preview
           </h3>
-          <div className="aspect-w-16 aspect-h-9 mb-4">
+          <div className="aspect-w-9 aspect-h-16 mb-4">
             <video src={croppedVideoUrl} width="100%" height="100%" controls />
           </div>
 
@@ -170,4 +170,4 @@ function InstagramWrapper({ postData }) {
   );
 }
 
-export default InstagramWrapper;
+export default TikTokWrapper;

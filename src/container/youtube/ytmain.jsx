@@ -1,8 +1,8 @@
 //yezdl-aeolus\src\container\main.jsx
 import React, { useState, useEffect, useRef } from "react";
-import SearchBar from "../../components/common/searchbar";
+import SearchBar from "../../container/youtube/searchbar";
 import VideoWrapper from "./videowrapper";
-import { extractVideoId, fetchVideoData } from "../../services/youtubeServices";
+import { extractVideoId, fetchVideoData } from "../../services/youtubeApi";
 import HowToUse from "./howtouse";
 
 function YoutubeMain() {

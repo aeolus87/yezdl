@@ -1,29 +1,26 @@
-//yezdl-aeolus\src\components\searchbar.jsx
-
+// src/container/facebook/FacebookSearchBar.jsx
 import React, { useState } from "react";
 
-function SearchBar({ onSearch }) {
+function FacebookSearchBar({ onSearch }) {
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState("");
 
-  const isYoutubeLink = (url) => {
-    const youtubeRegex =
-      /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-    return youtubeRegex.test(url);
+  const isFacebookLink = (url) => {
+    const facebookRegex = /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.watch)\/.+$/;
+    return facebookRegex.test(url);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      if (isYoutubeLink(inputValue)) {
+      if (isFacebookLink(inputValue)) {
         setError("");
-        localStorage.setItem("lastSearch", inputValue);
-        window.location.reload();
+        onSearch(inputValue);
       } else {
-        setError("Please enter a valid YouTube link.");
+        setError("Please enter a valid Facebook link.");
       }
     } else {
-      setError("Please enter a YouTube link.");
+      setError("Please enter a Facebook link.");
     }
   };
 
@@ -40,7 +37,7 @@ function SearchBar({ onSearch }) {
             setInputValue(e.target.value);
             setError("");
           }}
-          placeholder="Enter or Paste Youtube Video Link"
+          placeholder="Enter Facebook Video URL"
           className={`w-full max-w-xl px-12 py-2 text-gray-700 bg-white border rounded-t-full sm:rounded-l-full sm:rounded-t-none focus:outline-none focus:border-blue-500 mb-2 sm:mb-0 ${
             error ? "border-red-500" : ""
           }`}
@@ -59,4 +56,4 @@ function SearchBar({ onSearch }) {
   );
 }
 
-export default SearchBar;
+export default FacebookSearchBar;
